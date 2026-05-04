@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoneyFlow — Income & Expense Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,400&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg: #f7f5f2;
+  --surface: #ffffff;
+  --surface2: #f0ede8;
+  --ink: #2d2926;
+  --ink-mid: #6b6460;
+  --ink-faint: #b8b3ae;
+  --border: rgba(45,41,38,0.10);
+  --shadow: 0 2px 20px rgba(45,41,38,0.07);
+  --shadow-lg: 0 8px 40px rgba(45,41,38,0.12);
+  --radius: 18px;
+  --radius-sm: 10px;
+
+  /* Income — pastel green family */
+  --green-bg: #e8f5ee;
+  --green-mid: #b8dfc8;
+  --green-text: #2a6645;
+  --green-pill: #d0eddb;
+  --green-btn: #4caf78;
+  --green-btn-hover: #3d9a66;
+
+  /* Expense — pastel coral/red family */
+  --red-bg: #fdeee9;
+  --red-mid: #f5c4b2;
+  --red-text: #b03a20;
+  --red-pill: #fad5c8;
+  --red-btn: #e8714d;
+  --red-btn-hover: #d45c38;
+
+  /* Cashback — pastel amber */
+  --amber-bg: #fef6e4;
+  --amber-text: #9a6c10;
+  --amber-pill: #fdeac8;
+
+  /* Net — pastel blue */
+  --blue-bg: #e8f0fc;
+  --blue-text: #2a4ea0;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 85% 5%, rgba(76,175,120,0.10) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 40% at 5% 90%, rgba(232,113,77,0.09) 0%, transparent 60%);
+  pointer-events:none;
+  z-index:0;
+}
+
+.app { position:relative; z-index:1; max-width:1040px; margin:0 auto; padding:36px 20px 80px; }
+
+/* ── Header ── */
+header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:36px;
+}
+.brand h1 {
+  font-family:'Lora',serif; font-size:32px; font-weight:600;
+  letter-spacing:-0.5px; color:var(--ink); line-height:1;
+}
+.brand h1 span { font-style:italic; font-weight:400; color:var(--green-btn); }
+.brand p { font-size:12px; letter-spacing:0.10em; text-transform:uppercase; color:var(--ink-mid); margin-top:4px; font-weight:500; }
+.header-date { text-align:right; font-size:13px; color:var(--ink-mid); font-weight:400; }
+.header-date strong { display:block; font-size:16px; color:var(--ink); font-weight:600; }
+
+/* ── Summary Cards ── */
+.summary {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
+  margin-bottom:32px;
+}
+.card {
+  background:var(--surface); border-radius:var(--radius);
+  padding:20px 22px; box-shadow:var(--shadow);
+  border:1px solid var(--border); transition:transform .2s,box-shadow .2s;
+}
+.card:hover { transform:translateY(-2px); box-shadow:var(--shadow-lg); }
+.card.income  { background:var(--green-bg); border-color:var(--green-mid); }
+.card.expense { background:var(--red-bg);   border-color:var(--red-mid); }
+.card.cashback{ background:var(--amber-bg); border-color:#f0d090; }
+.card.net     { background:var(--blue-bg);  border-color:#c0d0f4; }
+.card-label {
+  font-size:11px; font-weight:600; letter-spacing:0.10em; text-transform:uppercase;
+  margin-bottom:8px;
+}
+.card.income  .card-label { color:var(--green-text); }
+.card.expense .card-label { color:var(--red-text); }
+.card.cashback .card-label{ color:var(--amber-text); }
+.card.net     .card-label { color:var(--blue-text); }
+.card-amount {
+  font-family:'Lora',serif; font-size:26px; font-weight:600; line-height:1;
+}
+.card.income  .card-amount { color:var(--green-text); }
+.card.expense .card-amount { color:var(--red-text); }
+.card.cashback .card-amount{ color:var(--amber-text); }
+.card.net     .card-amount { color:var(--blue-text); }
+.card-sub { font-size:12px; color:var(--ink-mid); margin-top:6px; }
+
+/* ── Tabs ── */
+.tabs { display:flex; gap:6px; margin-bottom:24px; }
+.tab {
+  padding:10px 22px; border-radius:50px; font-size:14px; font-weight:600;
+  cursor:pointer; border:2px solid transparent; transition:all .2s; background:var(--surface);
+  color:var(--ink-mid); border-color:var(--border);
+}
+.tab.active-income  { background:var(--green-bg); color:var(--green-text); border-color:var(--green-mid); }
+.tab.active-expense { background:var(--red-bg);   color:var(--red-text);   border-color:var(--red-mid); }
+.tab.active-all     { background:var(--surface2); color:var(--ink);        border-color:var(--border); }
+.tab.active-summary { background:var(--surface2); color:var(--ink);        border-color:var(--border); }
+
+/* ── Panel ── */
+.panel { background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow); border:1px solid var(--border); overflow:hidden; }
+
+/* ── Form ── */
+.form-section { padding:28px 28px 24px; }
+.form-title {
+  font-family:'Lora',serif; font-size:18px; font-weight:600;
+  margin-bottom:20px; display:flex; align-items:center; gap:10px;
+}
+.form-title .pill {
+  font-family:'Nunito',sans-serif; font-size:11px; font-weight:700;
+  letter-spacing:0.08em; text-transform:uppercase;
+  padding:3px 10px; border-radius:20px;
+}
+.income-form  .form-title .pill { background:var(--green-pill); color:var(--green-text); }
+.expense-form .form-title .pill { background:var(--red-pill);   color:var(--red-text); }
+
+.form-grid {
+  display:grid; gap:14px;
+  grid-template-columns:2fr 1.2fr 1.2fr 1.2fr;
+}
+.form-grid-expense {
+  display:grid; gap:14px;
+  grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;
+}
+
+.form-group { display:flex; flex-direction:column; gap:5px; }
+.form-group label {
+  font-size:11px; font-weight:700; letter-spacing:0.08em;
+  text-transform:uppercase; color:var(--ink-mid);
+}
+.form-group input,
+.form-group select {
+  padding:10px 14px; border-radius:var(--radius-sm);
+  border:1.5px solid var(--border); background:var(--bg);
+  font-family:'Nunito',sans-serif; font-size:14px; color:var(--ink);
+  transition:border-color .2s, box-shadow .2s; outline:none;
+  width:100%;
+}
+.form-group input:focus,
+.form-group select:focus {
+  border-color:var(--green-btn); box-shadow:0 0 0 3px rgba(76,175,120,0.12);
+}
+.expense-form .form-group input:focus,
+.expense-form .form-group select:focus {
+  border-color:var(--red-btn); box-shadow:0 0 0 3px rgba(232,113,77,0.12);
+}
+.form-group input::placeholder { color:var(--ink-faint); }
+
+.form-actions { display:flex; gap:10px; margin-top:18px; align-items:center; }
+.btn {
+  padding:11px 24px; border-radius:50px; font-family:'Nunito',sans-serif;
+  font-size:14px; font-weight:700; cursor:pointer; border:none;
+  transition:all .18s; letter-spacing:0.02em;
+}
+.btn-income  { background:var(--green-btn); color:#fff; }
+.btn-income:hover  { background:var(--green-btn-hover); transform:translateY(-1px); box-shadow:0 4px 16px rgba(76,175,120,0.30); }
+.btn-expense { background:var(--red-btn); color:#fff; }
+.btn-expense:hover { background:var(--red-btn-hover); transform:translateY(-1px); box-shadow:0 4px 16px rgba(232,113,77,0.30); }
+.btn-ghost {
+  background:transparent; color:var(--ink-mid);
+  border:1.5px solid var(--border); padding:10px 18px;
+}
+.btn-ghost:hover { background:var(--surface2); color:var(--ink); }
+.btn-export {
+  background:var(--surface2); color:var(--ink); border:1.5px solid var(--border);
+  margin-left:auto;
+}
+.btn-export:hover { background:var(--ink); color:#fff; }
+
+/* ── Table ── */
+.table-section { overflow:hidden; }
+.table-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 28px 14px; border-top:1px solid var(--border);
+}
+.table-title { font-family:'Lora',serif; font-size:16px; font-weight:600; }
+.search-wrap { position:relative; }
+.search-wrap input {
+  padding:8px 14px 8px 36px; border-radius:50px;
+  border:1.5px solid var(--border); background:var(--bg);
+  font-family:'Nunito',sans-serif; font-size:13px; color:var(--ink);
+  outline:none; transition:border-color .2s; width:200px;
+}
+.search-wrap input:focus { border-color:var(--ink-faint); }
+.search-icon {
+  position:absolute; left:12px; top:50%; transform:translateY(-50%);
+  color:var(--ink-faint); font-size:14px; pointer-events:none;
+}
+
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; }
+thead th {
+  padding:10px 14px; text-align:left; font-size:11px; font-weight:700;
+  letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-mid);
+  background:var(--surface2); border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+thead th:first-child { padding-left:28px; }
+thead th:last-child  { padding-right:28px; }
+
+tbody tr {
+  border-bottom:1px solid var(--border); transition:background .15s;
+}
+tbody tr:last-child { border-bottom:none; }
+tbody tr:hover { background:var(--surface2); }
+tbody td {
+  padding:13px 14px; font-size:14px; vertical-align:middle;
+}
+tbody td:first-child { padding-left:28px; }
+tbody td:last-child  { padding-right:28px; }
+
+.type-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700;
+  letter-spacing:0.06em; text-transform:uppercase;
+}
+.badge-income  { background:var(--green-pill); color:var(--green-text); }
+.badge-expense { background:var(--red-pill);   color:var(--red-text); }
+.badge-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.badge-income  .badge-dot { background:var(--green-btn); }
+.badge-expense .badge-dot { background:var(--red-btn); }
+
+.amount-income  { color:var(--green-text); font-weight:700; font-size:15px; }
+.amount-expense { color:var(--red-text);   font-weight:700; font-size:15px; }
+.cashback-cell  { color:var(--amber-text); font-weight:600; font-size:13px; }
+
+.cat-tag {
+  display:inline-block; padding:2px 9px; border-radius:20px;
+  font-size:12px; font-weight:600; background:var(--surface2); color:var(--ink-mid);
+}
+.mode-tag {
+  display:inline-block; padding:2px 9px; border-radius:20px;
+  font-size:11px; font-weight:600; background:#f0ede8; color:var(--ink-mid);
+  letter-spacing:0.04em;
+}
+
+.desc-cell { font-weight:500; max-width:200px; }
+.desc-cell small { display:block; font-size:12px; color:var(--ink-mid); font-weight:400; }
+
+.action-btn {
+  background:none; border:none; cursor:pointer; padding:5px 8px;
+  border-radius:8px; font-size:14px; transition:background .15s; color:var(--ink-mid);
+}
+.action-btn:hover.edit-btn  { background:var(--green-pill); color:var(--green-text); }
+.action-btn:hover.del-btn   { background:var(--red-pill);   color:var(--red-text); }
+
+.empty-state {
+  text-align:center; padding:48px 24px; color:var(--ink-faint);
+}
+.empty-state .empty-icon { font-size:42px; margin-bottom:12px; }
+.empty-state p { font-size:15px; }
+
+/* ── Summary Tab ── */
+.summary-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:20px; padding:28px;
+}
+.summary-block {
+  background:var(--surface2); border-radius:var(--radius-sm);
+  padding:20px; border:1px solid var(--border);
+}
+.summary-block h3 {
+  font-family:'Lora',serif; font-size:15px; font-weight:600;
+  margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border);
+}
+.summary-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:7px 0; font-size:14px; border-bottom:1px solid rgba(45,41,38,0.05);
+}
+.summary-row:last-child { border-bottom:none; }
+.summary-row .s-label { color:var(--ink-mid); }
+.summary-row .s-val   { font-weight:700; }
+.summary-row .s-val.income  { color:var(--green-text); }
+.summary-row .s-val.expense { color:var(--red-text); }
+.summary-row .s-val.amber   { color:var(--amber-text); }
+
+.net-banner {
+  margin:0 28px 28px; padding:20px 24px; border-radius:var(--radius-sm);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.net-banner.positive { background:var(--green-bg); border:1px solid var(--green-mid); }
+.net-banner.negative { background:var(--red-bg);   border:1px solid var(--red-mid); }
+.net-banner .net-label { font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; }
+.net-banner.positive .net-label { color:var(--green-text); }
+.net-banner.negative .net-label { color:var(--red-text); }
+.net-banner .net-val {
+  font-family:'Lora',serif; font-size:28px; font-weight:600;
+}
+.net-banner.positive .net-val { color:var(--green-text); }
+.net-banner.negative .net-val { color:var(--red-text); }
+
+/* ── Modal / Edit ── */
+.modal-overlay {
+  display:none; position:fixed; inset:0; background:rgba(45,41,38,0.35);
+  backdrop-filter:blur(4px); z-index:1000; align-items:center; justify-content:center;
+}
+.modal-overlay.open { display:flex; }
+.modal {
+  background:var(--surface); border-radius:var(--radius);
+  padding:32px; width:min(560px,92vw); box-shadow:var(--shadow-lg);
+  border:1px solid var(--border); animation:slideUp .25s ease;
+}
+@keyframes slideUp {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.modal-title {
+  font-family:'Lora',serif; font-size:20px; font-weight:600;
+  margin-bottom:22px;
+}
+.modal-grid { display:grid; gap:14px; grid-template-columns:1fr 1fr; }
+.modal-actions { display:flex; gap:10px; margin-top:24px; justify-content:flex-end; }
+
+/* ── Animations ── */
+@keyframes fadeIn {
+  from { opacity:0; transform:translateY(8px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+tbody tr { animation:fadeIn .25s ease; }
+
+/* ── Responsive ── */
+@media(max-width:768px) {
+  .summary { grid-template-columns:1fr 1fr; }
+  .form-grid { grid-template-columns:1fr 1fr; }
+  .form-grid-expense { grid-template-columns:1fr 1fr; }
+  .summary-grid { grid-template-columns:1fr; }
+}
+@media(max-width:520px) {
+  .summary { grid-template-columns:1fr 1fr; }
+  .tabs { flex-wrap:wrap; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <h1>MoneyFl<span>ō</span>w</h1>
+      <p>Income & Expense Tracker</p>
+    </div>
+    <div class="header-date">
+      <strong id="hd-date"></strong>
+      <span id="hd-time"></span>
+    </div>
+  </header>
+
+  <!-- Summary Cards -->
+  <div class="summary">
+    <div class="card income">
+      <div class="card-label">Total Income</div>
+      <div class="card-amount" id="sum-income">₹0.00</div>
+      <div class="card-sub" id="sum-income-count">0 entries</div>
+    </div>
+    <div class="card expense">
+      <div class="card-label">Total Expenses</div>
+      <div class="card-amount" id="sum-expense">₹0.00</div>
+      <div class="card-sub" id="sum-expense-count">0 entries</div>
+    </div>
+    <div class="card cashback">
+      <div class="card-label">Total Cashback</div>
+      <div class="card-amount" id="sum-cashback">₹0.00</div>
+      <div class="card-sub">Effective savings</div>
+    </div>
+    <div class="card net">
+      <div class="card-label">Net Balance</div>
+      <div class="card-amount" id="sum-net">₹0.00</div>
+      <div class="card-sub" id="sum-net-label">Income − Expense + Cashback</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab" onclick="showTab('income')"  id="tab-income">+ Add Income</button>
+    <button class="tab" onclick="showTab('expense')" id="tab-expense">+ Add Expense</button>
+    <button class="tab" onclick="showTab('all')"     id="tab-all">All Entries</button>
+    <button class="tab" onclick="showTab('summary')" id="tab-summary">Summary</button>
+  </div>
+
+  <!-- Income Form -->
+  <div class="panel" id="panel-income" style="display:none">
+    <div class="form-section income-form">
+      <div class="form-title">
+        Add Income <span class="pill">Income</span>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="inc-desc" placeholder="e.g. Salary, Freelance project…">
+        </div>
+        <div class="form-group">
+          <label>Amount (₹)</label>
+          <input type="number" id="inc-amount" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="inc-cat">
+            <option value="">Select category</option>
+            <option>Salary</option>
+            <option>Income from selling stocks</option>
+            <option>Dividend</option>
+            <option>Interest from Bonds</option>
+            <option>Rental</option>
+            <option>Gift</option>
+            <option>Refund</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="inc-date">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-income" onclick="addEntry('income')">+ Add Income</button>
+        <button class="btn btn-ghost" onclick="clearForm('income')">Clear</button>
+      </div>
+    </div>
+    <div class="table-section">
+      <div class="table-header">
+        <div class="table-title">Income Entries</div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div class="search-wrap"><span class="search-icon">⌕</span><input type="text" placeholder="Search…" oninput="renderTable('income',this.value)"></div>
+          <button class="btn btn-export" onclick="exportCSV('income')">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap"><table><thead id="thead-income"></thead><tbody id="tbody-income"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- Expense Form -->
+  <div class="panel" id="panel-expense" style="display:none">
+    <div class="form-section expense-form">
+      <div class="form-title">
+        Add Expense <span class="pill">Expense</span>
+      </div>
+      <div class="form-grid-expense">
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="exp-desc" placeholder="e.g. Grocery, Netflix…">
+        </div>
+        <div class="form-group">
+          <label>Amount (₹)</label>
+          <input type="number" id="exp-amount" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Cashback (₹)</label>
+          <input type="number" id="exp-cashback" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="exp-cat">
+            <option value="">Select category</option>
+            <option>Food & Dining</option>
+            <option>Groceries</option>
+            <option>Transport</option>
+            <option>Shopping</option>
+            <option>Utilities</option>
+            <option>Entertainment</option>
+            <option>Healthcare</option>
+            <option>Education</option>
+            <option>Travel</option>
+            <option>Rent</option>
+            <option>Subscriptions</option>
+	    <option>Fuel</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Payment Mode</label>
+          <select id="exp-mode">
+            <option value="">Select mode</option>
+            <option>Cash</option>
+            <option>Credit Card</option>
+            <option>UPI</option>
+            <option>Debit Card</option>
+            <option>Net Banking</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="exp-date">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-expense" onclick="addEntry('expense')">+ Add Expense</button>
+        <button class="btn btn-ghost" onclick="clearForm('expense')">Clear</button>
+      </div>
+    </div>
+    <div class="table-section">
+      <div class="table-header">
+        <div class="table-title">Expense Entries</div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div class="search-wrap"><span class="search-icon">⌕</span><input type="text" placeholder="Search…" oninput="renderTable('expense',this.value)"></div>
+          <button class="btn btn-export" onclick="exportCSV('expense')">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap"><table><thead id="thead-expense"></thead><tbody id="tbody-expense"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- All Entries -->
+  <div class="panel" id="panel-all" style="display:none">
+    <div class="table-section">
+      <div class="table-header">
+        <div class="table-title">All Entries</div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div class="search-wrap"><span class="search-icon">⌕</span><input type="text" placeholder="Search…" oninput="renderTable('all',this.value)"></div>
+          <button class="btn btn-export" onclick="exportCSV('all')">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap"><table><thead id="thead-all"></thead><tbody id="tbody-all"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- Summary Tab -->
+  <div class="panel" id="panel-summary" style="display:none">
+    <div id="net-banner-wrap"></div>
+    <div class="summary-grid" id="summary-content"></div>
+  </div>
+
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Edit Entry</div>
+    <div id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn" id="modal-save-btn" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+let entries = JSON.parse(localStorage.getItem('flow_entries') || '[]');
+let editId = null;
+let currentTab = 'income';
+
+// ── Init ──
+setDefaultDates();
+updateClock();
+setInterval(updateClock, 1000);
+showTab('income');
+
+function setDefaultDates() {
+  const today = new Date().toISOString().split('T')[0];
+  ['inc-date','exp-date'].forEach(id => { const el=document.getElementById(id); if(el) el.value=today; });
+}
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('hd-date').textContent = now.toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('hd-time').textContent = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+}
+
+function save() {
+  localStorage.setItem('flow_entries', JSON.stringify(entries));
+  updateSummaryCards();
+}
+
+function fmt(n) {
+  return '₹' + parseFloat(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+// ── Summary Cards ──
+function updateSummaryCards() {
+  const inc = entries.filter(e=>e.type==='income');
+  const exp = entries.filter(e=>e.type==='expense');
+  const totalInc  = inc.reduce((s,e)=>s+e.amount,0);
+  const totalExp  = exp.reduce((s,e)=>s+e.amount,0);
+  const totalCash = exp.reduce((s,e)=>s+(e.cashback||0),0);
+  const net = totalInc - totalExp + totalCash;
+
+  document.getElementById('sum-income').textContent = fmt(totalInc);
+  document.getElementById('sum-expense').textContent = fmt(totalExp);
+  document.getElementById('sum-cashback').textContent = fmt(totalCash);
+  document.getElementById('sum-net').textContent = fmt(net);
+  document.getElementById('sum-income-count').textContent = inc.length + ' entr' + (inc.length===1?'y':'ies');
+  document.getElementById('sum-expense-count').textContent = exp.length + ' entr' + (exp.length===1?'y':'ies');
+
+  const netCard = document.querySelector('.card.net .card-amount');
+  netCard.style.color = net >= 0 ? 'var(--green-text)' : 'var(--red-text)';
+}
+
+// ── Tabs ──
+function showTab(tab) {
+  currentTab = tab;
+  ['income','expense','all','summary'].forEach(t => {
+    document.getElementById('panel-'+t).style.display = 'none';
+    const el = document.getElementById('tab-'+t);
+    el.className = 'tab';
+  });
+  document.getElementById('panel-'+tab).style.display = 'block';
+  const activeTab = document.getElementById('tab-'+tab);
+  if(tab==='income')  activeTab.className='tab active-income';
+  else if(tab==='expense') activeTab.className='tab active-expense';
+  else activeTab.className='tab active-all';
+
+  if(tab==='income'||tab==='expense'||tab==='all') renderTable(tab,'');
+  if(tab==='summary') renderSummary();
+  updateSummaryCards();
+}
+
+// ── Add Entry ──
+function addEntry(type) {
+  if(type==='income') {
+    const desc    = document.getElementById('inc-desc').value.trim();
+    const amount  = parseFloat(document.getElementById('inc-amount').value);
+    const cat     = document.getElementById('inc-cat').value;
+    const date    = document.getElementById('inc-date').value;
+    if(!desc||!amount||amount<=0) { alert('Please enter a description and a valid amount.'); return; }
+    entries.push({ id:Date.now(), type:'income', desc, amount, cat, date });
+    clearForm('income');
+  } else {
+    const desc     = document.getElementById('exp-desc').value.trim();
+    const amount   = parseFloat(document.getElementById('exp-amount').value);
+    const cashback = parseFloat(document.getElementById('exp-cashback').value)||0;
+    const cat      = document.getElementById('exp-cat').value;
+    const mode     = document.getElementById('exp-mode').value;
+    const date     = document.getElementById('exp-date').value;
+    if(!desc||!amount||amount<=0) { alert('Please enter a description and a valid amount.'); return; }
+    entries.push({ id:Date.now(), type:'expense', desc, amount, cashback, cat, mode, date });
+    clearForm('expense');
+  }
+  save();
+  renderTable(type,'');
+}
+
+function clearForm(type) {
+  if(type==='income') {
+    ['inc-desc','inc-amount'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('inc-cat').value='';
+    document.getElementById('inc-date').value=new Date().toISOString().split('T')[0];
+  } else {
+    ['exp-desc','exp-amount','exp-cashback'].forEach(id=>document.getElementById(id).value='');
+    ['exp-cat','exp-mode'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('exp-date').value=new Date().toISOString().split('T')[0];
+  }
+}
+
+// ── Render Tables ──
+function renderTable(tab, search='') {
+  const s = search.toLowerCase();
+  let data;
+  if(tab==='income')  data = entries.filter(e=>e.type==='income');
+  else if(tab==='expense') data = entries.filter(e=>e.type==='expense');
+  else data = [...entries];
+
+  if(s) data = data.filter(e =>
+    e.desc.toLowerCase().includes(s)||
+    (e.cat||'').toLowerCase().includes(s)||
+    (e.mode||'').toLowerCase().includes(s)||
+    e.amount.toString().includes(s)
+  );
+
+  // Sort newest first
+  data.sort((a,b) => b.id - a.id);
+
+  const isAll = tab==='all';
+  const isIncome  = tab==='income';
+  const isExpense = tab==='expense';
+
+  // Build thead
+  const theadEl = document.getElementById('thead-'+tab);
+  let headCols = isAll
+    ? ['Date','Type','Description','Category','Amount','Cashback','Mode','Actions']
+    : isIncome
+    ? ['Date','Description','Category','Amount','Actions']
+    : ['Date','Description','Category','Amount','Cashback','Mode','Actions'];
+  theadEl.innerHTML = '<tr>' + headCols.map(c=>`<th>${c}</th>`).join('') + '</tr>';
+
+  const tbody = document.getElementById('tbody-'+tab);
+  if(!data.length) {
+    const span = headCols.length;
+    tbody.innerHTML = `<tr><td colspan="${span}"><div class="empty-state"><div class="empty-icon">📋</div><p>No entries yet. Add one above!</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map(e => {
+    const isInc = e.type==='income';
+    const amtClass = isInc ? 'amount-income' : 'amount-expense';
+    const sign = isInc ? '+' : '−';
+    const dateStr = e.date ? new Date(e.date+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+
+    const typeCell = `<td><span class="type-badge ${isInc?'badge-income':'badge-expense'}"><span class="badge-dot"></span>${isInc?'Income':'Expense'}</span></td>`;
+    const cashCell = e.type==='expense'
+      ? `<td class="cashback-cell">${e.cashback>0?fmt(e.cashback):'—'}</td>`
+      : (isAll ? `<td>—</td>` : '');
+    const modeCell = e.type==='expense'
+      ? `<td><span class="mode-tag">${e.mode||'—'}</span></td>`
+      : (isAll ? `<td>—</td>` : '');
+
+    const baseCols = [
+      `<td>${dateStr}</td>`,
+      isAll ? typeCell : '',
+      `<td class="desc-cell">${e.desc}</td>`,
+      `<td><span class="cat-tag">${e.cat||'—'}</span></td>`,
+      `<td class="${amtClass}">${sign} ${fmt(e.amount)}</td>`,
+      cashCell,
+      modeCell,
+      `<td><button class="action-btn edit-btn" title="Edit" onclick="openEdit(${e.id})">✏️</button> <button class="action-btn del-btn" title="Delete" onclick="deleteEntry(${e.id},'${tab}')">🗑️</button></td>`
+    ].filter(c=>c!='');
+
+    return '<tr>' + baseCols.join('') + '</tr>';
+  }).join('');
+}
+
+// ── Delete ──
+function deleteEntry(id, tab) {
+  if(!confirm('Delete this entry?')) return;
+  entries = entries.filter(e=>e.id!==id);
+  save();
+  renderTable(tab,'');
+  if(currentTab==='summary') renderSummary();
+}
+
+// ── Edit Modal ──
+function openEdit(id) {
+  const e = entries.find(x=>x.id===id);
+  if(!e) return;
+  editId = id;
+  const isInc = e.type==='income';
+  document.getElementById('modal-title').textContent = (isInc?'Edit Income':'Edit Expense') + ' Entry';
+  const saveBtn = document.getElementById('modal-save-btn');
+  saveBtn.className = 'btn ' + (isInc ? 'btn-income' : 'btn-expense');
+
+  const incomeCategories = ['Salary','Freelance','Business','Investment','Rental','Gift','Refund','Other'];
+  const expenseCategories = ['Food & Dining','Groceries','Transport','Shopping','Utilities','Entertainment','Healthcare','Education','Travel','Rent','Subscriptions','Other'];
+  const cats = isInc ? incomeCategories : expenseCategories;
+
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-grid">
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Description</label>
+        <input type="text" id="m-desc" value="${e.desc}">
+      </div>
+      <div class="form-group">
+        <label>Amount (₹)</label>
+        <input type="number" id="m-amount" value="${e.amount}" step="0.01" min="0">
+      </div>
+      ${!isInc ? `<div class="form-group"><label>Cashback (₹)</label><input type="number" id="m-cashback" value="${e.cashback||0}" step="0.01" min="0"></div>` : ''}
+      <div class="form-group">
+        <label>Category</label>
+        <select id="m-cat">${cats.map(c=>`<option ${e.cat===c?'selected':''}>${c}</option>`).join('')}</select>
+      </div>
+      ${!isInc ? `<div class="form-group"><label>Payment Mode</label><select id="m-mode"><option value="">—</option>${['Cash','Credit Card','UPI','Debit Card','Net Banking'].map(m=>`<option ${e.mode===m?'selected':''}>${m}</option>`).join('')}</select></div>` : ''}
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="m-date" value="${e.date||''}">
+      </div>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+
+function saveEdit() {
+  const e = entries.find(x=>x.id===editId);
+  if(!e) return;
+  const newAmount = parseFloat(document.getElementById('m-amount').value);
+  if(!document.getElementById('m-desc').value.trim()||isNaN(newAmount)||newAmount<=0) {
+    alert('Please fill in description and a valid amount.'); return;
+  }
+  e.desc   = document.getElementById('m-desc').value.trim();
+  e.amount = newAmount;
+  e.cat    = document.getElementById('m-cat').value;
+  e.date   = document.getElementById('m-date').value;
+  if(e.type==='expense') {
+    e.cashback = parseFloat(document.getElementById('m-cashback').value)||0;
+    e.mode     = document.getElementById('m-mode').value;
+  }
+  save();
+  closeModal();
+  renderTable(currentTab,'');
+  if(currentTab==='summary') renderSummary();
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  editId = null;
+}
+document.getElementById('modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
+
+// ── Summary Tab ──
+function renderSummary() {
+  const inc = entries.filter(e=>e.type==='income');
+  const exp = entries.filter(e=>e.type==='expense');
+  const totalInc  = inc.reduce((s,e)=>s+e.amount,0);
+  const totalExp  = exp.reduce((s,e)=>s+e.amount,0);
+  const totalCash = exp.reduce((s,e)=>s+(e.cashback||0),0);
+  const net = totalInc - totalExp + totalCash;
+
+  // Net banner
+  const banner = document.getElementById('net-banner-wrap');
+  banner.innerHTML = `
+    <div class="net-banner ${net>=0?'positive':'negative'}" style="margin:28px 28px 0">
+      <div>
+        <div class="net-label">Net Balance</div>
+        <div style="font-size:12px;color:${net>=0?'var(--green-text)':'var(--red-text)'};margin-top:2px">Income − Expenses + Cashback</div>
+      </div>
+      <div class="net-val">${net>=0?'+':''}${fmt(net)}</div>
+    </div>`;
+
+  // Category breakdowns
+  const incCats = groupBy(inc,'cat');
+  const expCats = groupBy(exp,'cat');
+  const modeCats = groupBy(exp,'mode');
+
+  document.getElementById('summary-content').innerHTML = `
+    <div class="summary-block">
+      <h3>Income by Category</h3>
+      ${Object.keys(incCats).length ? Object.entries(incCats).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>`
+        <div class="summary-row">
+          <span class="s-label">${cat||'Uncategorised'}</span>
+          <span class="s-val income">${fmt(amt)}</span>
+        </div>`).join('') + `<div class="summary-row" style="border-top:1px solid var(--border);margin-top:6px;padding-top:10px"><span style="font-weight:700">Total</span><span class="s-val income">${fmt(totalInc)}</span></div>`
+        : '<div style="color:var(--ink-faint);font-size:13px;padding:8px 0">No income entries yet.</div>'}
+    </div>
+    <div class="summary-block">
+      <h3>Expenses by Category</h3>
+      ${Object.keys(expCats).length ? Object.entries(expCats).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>`
+        <div class="summary-row">
+          <span class="s-label">${cat||'Uncategorised'}</span>
+          <span class="s-val expense">${fmt(amt)}</span>
+        </div>`).join('') + `<div class="summary-row" style="border-top:1px solid var(--border);margin-top:6px;padding-top:10px"><span style="font-weight:700">Total</span><span class="s-val expense">${fmt(totalExp)}</span></div>`
+        : '<div style="color:var(--ink-faint);font-size:13px;padding:8px 0">No expense entries yet.</div>'}
+    </div>
+    <div class="summary-block">
+      <h3>Expenses by Payment Mode</h3>
+      ${Object.keys(modeCats).length ? Object.entries(modeCats).sort((a,b)=>b[1]-a[1]).map(([mode,amt])=>`
+        <div class="summary-row">
+          <span class="s-label">${mode||'Unknown'}</span>
+          <span class="s-val expense">${fmt(amt)}</span>
+        </div>`).join('')
+        : '<div style="color:var(--ink-faint);font-size:13px;padding:8px 0">No expense entries yet.</div>'}
+    </div>
+    <div class="summary-block">
+      <h3>Cashback Summary</h3>
+      <div class="summary-row"><span class="s-label">Total Cashback Earned</span><span class="s-val amber">${fmt(totalCash)}</span></div>
+      <div class="summary-row"><span class="s-label">Gross Expenses</span><span class="s-val expense">${fmt(totalExp)}</span></div>
+      <div class="summary-row"><span class="s-label">Effective Expenses</span><span class="s-val expense">${fmt(totalExp-totalCash)}</span></div>
+      <div class="summary-row"><span class="s-label">Cashback %</span><span class="s-val amber">${totalExp>0?((totalCash/totalExp)*100).toFixed(2):0}%</span></div>
+    </div>
+  `;
+}
+
+function groupBy(arr, key) {
+  return arr.reduce((acc, e) => {
+    const k = e[key] || 'Other';
+    acc[k] = (acc[k]||0) + e.amount;
+    return acc;
+  }, {});
+}
+
+// ── Export CSV ──
+function exportCSV(tab) {
+  let data;
+  if(tab==='income')  data = entries.filter(e=>e.type==='income');
+  else if(tab==='expense') data = entries.filter(e=>e.type==='expense');
+  else data = [...entries].sort((a,b)=>b.id-a.id);
+
+  if(!data.length) { alert('No entries to export.'); return; }
+
+  const rows = [
+    ['Date','Type','Description','Category','Amount','Cashback','Payment Mode']
+  ];
+  data.forEach(e => rows.push([
+    e.date||'', e.type, e.desc, e.cat||'', e.amount, e.cashback||0, e.mode||''
+  ]));
+
+  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `flow-${tab}-${new Date().toISOString().split('T')[0]}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+}
+
+// Initial render
+updateSummaryCards();
+</script>
+</body>
+</html>
